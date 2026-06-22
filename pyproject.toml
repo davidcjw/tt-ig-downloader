@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ttdl"
+version = "1.0.0"
+description = "A small, ergonomic TikTok video downloader (single or batch) built on yt-dlp."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "David Chong" }]
+keywords = ["tiktok", "downloader", "yt-dlp", "video", "cli"]
+dependencies = [
+    # yt-dlp[default] pulls in curl_cffi for browser impersonation, which makes
+    # TikTok downloads markedly more reliable against bot-detection.
+    "yt-dlp[default]>=2025.1.1",
+]
+
+[project.scripts]
+ttdl = "ttdl:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[tool.setuptools]
+py-modules = ["ttdl"]

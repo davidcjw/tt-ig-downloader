@@ -1,0 +1,6 @@
+# Runtime dependency. The [default] extra adds curl_cffi for browser
+# impersonation, which makes TikTok downloads more reliable.
+yt-dlp[default]>=2025.1.1
+
+# Dev/test only:
+# pytest>=7
