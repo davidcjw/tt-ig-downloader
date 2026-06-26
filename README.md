@@ -125,9 +125,11 @@ By default files are saved as `downloads/<uploader>/<video_id>.<ext>`, e.g.
 
 ```
 downloads/
-└── tiktok/
-    ├── 7651659857640033566.mp4
-    └── 7652870361331043614.mp4
+├── tiktok/
+│   ├── 7651659857640033566.mp4
+│   └── 7652870361331043614.mp4
+└── instagram/
+    └── C8xYz1AbCdE.mp4
 ```
 
 Customize with `-t/--template` using any [yt-dlp output template](https://github.com/yt-dlp/yt-dlp#output-template).
