@@ -14,9 +14,9 @@ def make_args(**overrides):
     """Build a Namespace with all CLI defaults, overridable per test."""
     defaults = dict(
         urls=[], file=None, output_dir="downloads", template=ttdl.DEFAULT_TEMPLATE,
-        jobs=1, audio=False, metadata=False, thumbnail=False, archive=None,
-        force=False, cookies_from_browser=None, cookies=None, allow_any=False,
-        simulate=False, quiet=False, extra=[],
+        jobs=1, audio=False, h264=False, metadata=False, thumbnail=False,
+        archive=None, force=False, cookies_from_browser=None, cookies=None,
+        allow_any=False, simulate=False, quiet=False, extra=[],
     )
     defaults.update(overrides)
     return argparse.Namespace(**defaults)
@@ -28,9 +28,13 @@ def make_args(**overrides):
     "https://vm.tiktok.com/ZMabc/",
     "https://vt.tiktok.com/ZSxyz/",
     "https://www.TikTok.com/@user",  # case-insensitive
+    "https://www.instagram.com/p/DYvPR-hSAfd/",
+    "https://www.instagram.com/reel/abc123/",
+    "https://instagram.com/someuser",
+    "https://www.Instagram.com/p/x/",  # case-insensitive
 ])
-def test_is_tiktok_url_true(url):
-    assert ttdl.is_tiktok_url(url) is True
+def test_is_supported_url_true(url):
+    assert ttdl.is_supported_url(url) is True
 
 
 @pytest.mark.parametrize("url", [
@@ -38,8 +42,8 @@ def test_is_tiktok_url_true(url):
     "https://example.com/video",
     "not a url",
 ])
-def test_is_tiktok_url_false(url):
-    assert ttdl.is_tiktok_url(url) is False
+def test_is_supported_url_false(url):
+    assert ttdl.is_supported_url(url) is False
 
 
 # ----------------------------- URL file reading ---------------------------- #
@@ -83,13 +87,24 @@ def test_collect_urls_merges_file_and_positionals(tmp_path):
     ]
 
 
-def test_collect_urls_filters_non_tiktok(capsys):
+def test_collect_urls_filters_unsupported(capsys):
     args = make_args(urls=[
         "https://www.tiktok.com/@a/video/1",
         "https://youtube.com/watch?v=x",
     ])
     assert ttdl.collect_urls(args) == ["https://www.tiktok.com/@a/video/1"]
     assert "skip" in capsys.readouterr().err
+
+
+def test_collect_urls_keeps_tiktok_and_instagram():
+    args = make_args(urls=[
+        "https://www.tiktok.com/@a/video/1",
+        "https://www.instagram.com/reel/abc/",
+    ])
+    assert ttdl.collect_urls(args) == [
+        "https://www.tiktok.com/@a/video/1",
+        "https://www.instagram.com/reel/abc/",
+    ]
 
 
 def test_collect_urls_allow_any_keeps_non_tiktok():
@@ -122,6 +137,18 @@ def test_build_base_command_audio_adds_extraction():
     cmd = ttdl.build_base_command(make_args(audio=True), ["yt-dlp"])
     assert "-x" in cmd
     assert "mp3" in cmd
+
+
+def test_build_base_command_h264_prefers_apple_codecs():
+    cmd = ttdl.build_base_command(make_args(h264=True), ["yt-dlp"])
+    assert "-S" in cmd
+    assert "vcodec:h264,acodec:aac" in cmd
+    assert "--merge-output-format" in cmd and "mp4" in cmd
+
+
+def test_build_base_command_no_h264_by_default():
+    cmd = ttdl.build_base_command(make_args(), ["yt-dlp"])
+    assert "vcodec:h264,acodec:aac" not in cmd
 
 
 def test_build_base_command_force_omits_no_overwrites():
