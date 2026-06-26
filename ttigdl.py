@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""ttdl - a small, ergonomic TikTok video downloader.
+"""ttigdl - a small, ergonomic TikTok & Instagram video downloader.
 
-Wraps the `yt-dlp` binary (the most reliable TikTok engine) with TikTok-tuned
+Wraps the `yt-dlp` binary (the most reliable engine for both sites) with sane
 defaults: watermark-free downloads, clean filenames, batch handling, optional
-audio extraction, a resume archive, and a per-URL summary.
+audio extraction, QuickTime-compatible H.264, a resume archive, and a per-URL
+summary.
 
 Examples:
-    ttdl https://www.tiktok.com/@user/video/1234567890
-    ttdl url1 url2 url3 -o ~/Videos/tiktok
-    ttdl -f urls.txt -j 5 --archive
-    ttdl https://www.tiktok.com/@someuser --audio       # whole profile -> mp3
+    ttigdl https://www.tiktok.com/@user/video/1234567890
+    ttigdl https://www.instagram.com/p/SHORTCODE/ --h264
+    ttigdl url1 url2 url3 -o ~/Videos
+    ttigdl -f urls.txt -j 5 --archive
+    ttigdl https://www.tiktok.com/@someuser --audio       # whole profile -> mp3
 """
 from __future__ import annotations
 
@@ -21,7 +23,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 # Default filename layout: group by uploader, name by stable video id.
 DEFAULT_TEMPLATE = "%(uploader,creator,uploader_id|unknown)s/%(id)s.%(ext)s"
@@ -74,9 +76,13 @@ def read_url_file(path: str) -> list[str]:
     return urls
 
 
-def is_tiktok_url(url: str) -> bool:
-    """True for any tiktok.com host (incl. vm./vt./www. short links)."""
-    return "tiktok.com" in url.lower()
+SUPPORTED_HOSTS = ("tiktok.com", "instagram.com")
+
+
+def is_supported_url(url: str) -> bool:
+    """True for a TikTok or Instagram URL (incl. short links like vm./vt.)."""
+    low = url.lower()
+    return any(host in low for host in SUPPORTED_HOSTS)
 
 
 def collect_urls(args: argparse.Namespace) -> list[str]:
@@ -97,12 +103,13 @@ def collect_urls(args: argparse.Namespace) -> list[str]:
 
     urls: list[str] = []
     for url in ordered:
-        if is_tiktok_url(url) or args.allow_any:
+        if is_supported_url(url) or args.allow_any:
             urls.append(url)
         else:
-            print(f"  skip (not a tiktok url): {url}", file=sys.stderr)
+            print(f"  skip (not a tiktok/instagram url): {url}", file=sys.stderr)
     if not urls:
-        sys.exit("error: no valid TikTok URLs to download (use --allow-any to override).")
+        sys.exit("error: no valid TikTok/Instagram URLs to download "
+                 "(use --allow-any to override).")
     return urls
 
 
@@ -121,6 +128,11 @@ def build_base_command(args: argparse.Namespace, ytdlp: list[str]) -> list[str]:
         cmd += ["--no-overwrites"]
     if args.audio:
         cmd += ["-x", "--audio-format", "mp3", "--audio-quality", "0"]
+    if args.h264:
+        # Prefer Apple/QuickTime-compatible codecs (H.264 video + AAC audio).
+        # Some sites (e.g. Instagram) serve higher-res VP9 that QuickTime can't
+        # decode; this trades a little resolution for universal playback.
+        cmd += ["-S", "vcodec:h264,acodec:aac", "--merge-output-format", "mp4"]
     if args.metadata:
         cmd += ["--write-info-json"]
     if args.thumbnail:
@@ -201,18 +213,20 @@ def download_all(urls: list[str], base_cmd: list[str], jobs: int) -> list[Result
 # --------------------------------------------------------------------------- #
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="ttdl",
-        description="Download TikTok videos (single or batch) via yt-dlp.",
+        prog="ttigdl",
+        description="Download TikTok & Instagram videos (single or batch) via yt-dlp.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "examples:\n"
-            "  ttdl https://www.tiktok.com/@user/video/123\n"
-            "  ttdl url1 url2 -o ~/Videos/tiktok -j 4\n"
-            "  ttdl -f urls.txt --archive --metadata\n"
-            "  ttdl https://www.tiktok.com/@user --audio   # whole profile to mp3\n"
+            "  ttigdl https://www.tiktok.com/@user/video/123\n"
+            "  ttigdl https://www.instagram.com/p/SHORTCODE/ --h264\n"
+            "  ttigdl url1 url2 -o ~/Videos -j 4\n"
+            "  ttigdl -f urls.txt --archive --metadata\n"
+            "  ttigdl https://www.tiktok.com/@user --audio   # whole profile to mp3\n"
         ),
     )
-    p.add_argument("urls", nargs="*", help="one or more TikTok video/profile URLs")
+    p.add_argument("urls", nargs="*",
+                   help="one or more TikTok/Instagram video/profile URLs")
     p.add_argument("-f", "--file", help="text file of URLs (one per line, # comments)")
     p.add_argument("-o", "--output-dir", default="downloads",
                    help="directory to save into (default: ./downloads)")
@@ -222,14 +236,17 @@ def build_parser() -> argparse.ArgumentParser:
                    help="concurrent downloads (default: 1 = live progress)")
     p.add_argument("-a", "--audio", action="store_true",
                    help="extract audio as mp3 instead of video")
+    p.add_argument("--h264", action="store_true",
+                   help="prefer QuickTime/Apple-compatible H.264 video + AAC "
+                        "audio (avoids VP9 that QuickTime can't play)")
     p.add_argument("--metadata", action="store_true",
                    help="also write a .info.json sidecar per video")
     p.add_argument("--thumbnail", action="store_true",
                    help="also download the cover thumbnail")
-    p.add_argument("--archive", nargs="?", const="ttdl-archive.txt", default=None,
+    p.add_argument("--archive", nargs="?", const="ttigdl-archive.txt", default=None,
                    metavar="FILE",
                    help="record downloaded ids to skip them next run "
-                        "(default file: ttdl-archive.txt)")
+                        "(default file: ttigdl-archive.txt)")
     p.add_argument("--force", action="store_true",
                    help="re-download even if the file already exists")
     p.add_argument("--cookies-from-browser", metavar="BROWSER",
@@ -238,7 +255,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--cookies", metavar="FILE",
                    help="load cookies from a Netscape-format cookies.txt file")
     p.add_argument("--allow-any", action="store_true",
-                   help="allow non-TikTok URLs (yt-dlp supports many sites)")
+                   help="allow URLs from other sites (yt-dlp supports many)")
     p.add_argument("-X", "--extra", action="append", default=[], metavar="ARG",
                    help="raw yt-dlp argument(s) to pass through; repeatable, "
                         "e.g. -X '--max-filesize 50M'")
