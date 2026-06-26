@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ttdl - a small, ergonomic TikTok & Instagram video downloader.
+"""ttigdl - a small, ergonomic TikTok & Instagram video downloader.
 
 Wraps the `yt-dlp` binary (the most reliable engine for both sites) with sane
 defaults: watermark-free downloads, clean filenames, batch handling, optional
@@ -7,11 +7,11 @@ audio extraction, QuickTime-compatible H.264, a resume archive, and a per-URL
 summary.
 
 Examples:
-    ttdl https://www.tiktok.com/@user/video/1234567890
-    ttdl https://www.instagram.com/p/SHORTCODE/ --h264
-    ttdl url1 url2 url3 -o ~/Videos
-    ttdl -f urls.txt -j 5 --archive
-    ttdl https://www.tiktok.com/@someuser --audio       # whole profile -> mp3
+    ttigdl https://www.tiktok.com/@user/video/1234567890
+    ttigdl https://www.instagram.com/p/SHORTCODE/ --h264
+    ttigdl url1 url2 url3 -o ~/Videos
+    ttigdl -f urls.txt -j 5 --archive
+    ttigdl https://www.tiktok.com/@someuser --audio       # whole profile -> mp3
 """
 from __future__ import annotations
 
@@ -213,16 +213,16 @@ def download_all(urls: list[str], base_cmd: list[str], jobs: int) -> list[Result
 # --------------------------------------------------------------------------- #
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="ttdl",
+        prog="ttigdl",
         description="Download TikTok & Instagram videos (single or batch) via yt-dlp.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "examples:\n"
-            "  ttdl https://www.tiktok.com/@user/video/123\n"
-            "  ttdl https://www.instagram.com/p/SHORTCODE/ --h264\n"
-            "  ttdl url1 url2 -o ~/Videos -j 4\n"
-            "  ttdl -f urls.txt --archive --metadata\n"
-            "  ttdl https://www.tiktok.com/@user --audio   # whole profile to mp3\n"
+            "  ttigdl https://www.tiktok.com/@user/video/123\n"
+            "  ttigdl https://www.instagram.com/p/SHORTCODE/ --h264\n"
+            "  ttigdl url1 url2 -o ~/Videos -j 4\n"
+            "  ttigdl -f urls.txt --archive --metadata\n"
+            "  ttigdl https://www.tiktok.com/@user --audio   # whole profile to mp3\n"
         ),
     )
     p.add_argument("urls", nargs="*",
@@ -243,10 +243,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help="also write a .info.json sidecar per video")
     p.add_argument("--thumbnail", action="store_true",
                    help="also download the cover thumbnail")
-    p.add_argument("--archive", nargs="?", const="ttdl-archive.txt", default=None,
+    p.add_argument("--archive", nargs="?", const="ttigdl-archive.txt", default=None,
                    metavar="FILE",
                    help="record downloaded ids to skip them next run "
-                        "(default file: ttdl-archive.txt)")
+                        "(default file: ttigdl-archive.txt)")
     p.add_argument("--force", action="store_true",
                    help="re-download even if the file already exists")
     p.add_argument("--cookies-from-browser", metavar="BROWSER",

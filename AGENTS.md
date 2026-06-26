@@ -1,17 +1,17 @@
-# AGENTS.md — ttdl
+# AGENTS.md — ttigdl
 
 Guidance for AI agents working in this repo.
 
 ## What this is
 
-`ttdl` is a single-file Python CLI (`ttdl.py`) that downloads TikTok and
+`ttigdl` is a single-file Python CLI (`ttigdl.py`) that downloads TikTok and
 Instagram videos (single / batch / whole-profile) by shelling out to the
 `yt-dlp` binary or module. It is a thin, well-tested wrapper — the heavy lifting
 (extraction, watermark-free formats, impersonation) is yt-dlp's job.
 
 ## Architecture (one file)
 
-`ttdl.py`, top to bottom:
+`ttigdl.py`, top to bottom:
 
 - `find_ytdlp()` — resolves how to call yt-dlp. **Prefers `python -m yt_dlp`
   from the current interpreter** (so a fresh `pip install` wins over a stale
@@ -48,7 +48,7 @@ python3 -m venv .venv
 ./.venv/bin/python -m pytest tests/ -q
 ```
 
-Tests in `tests/test_ttdl.py` cover the **pure logic** (URL parsing/validation,
+Tests in `tests/test_ttigdl.py` cover the **pure logic** (URL parsing/validation,
 dedup, command building, and the download dispatcher with mocked subprocesses).
 They do **not** hit the network. When adding a flag:
 

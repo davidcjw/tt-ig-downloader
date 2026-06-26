@@ -1,4 +1,4 @@
-# ttdl — TikTok & Instagram video downloader
+# ttigdl — TikTok & Instagram video downloader
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)
@@ -8,7 +8,7 @@
 A small, ergonomic command-line tool to download **TikTok and Instagram** videos — **single or batch** — built on top of [`yt-dlp`](https://github.com/yt-dlp/yt-dlp), the most reliable engine for both.
 
 <p align="center">
-  <img src="docs/demo.gif" alt="ttdl downloading a video from the command line" width="700">
+  <img src="docs/demo.gif" alt="ttigdl downloading a video from the command line" width="700">
 </p>
 
 ## Contents
@@ -47,19 +47,19 @@ TikTok and Instagram change their page structure often, which breaks older extra
 ### Option A — as a global command (recommended)
 
 ```bash
-pipx install /Users/davidcjw/code/tiktok-downloader
-ttdl --version
+pipx install /Users/davidcjw/code/tt-ig-downloader
+ttigdl --version
 ```
 
-This gives you a global `ttdl` command with its own up-to-date `yt-dlp[default]`.
+This gives you a global `ttigdl` command with its own up-to-date `yt-dlp[default]`.
 
 ### Option B — local virtualenv
 
 ```bash
-cd tiktok-downloader
+cd tt-ig-downloader
 python3 -m venv .venv
 ./.venv/bin/python -m pip install -r requirements.txt
-./.venv/bin/python ttdl.py --version
+./.venv/bin/python ttigdl.py --version
 ```
 
 > `ffmpeg` is required only for `--audio` extraction (`brew install ffmpeg`).
@@ -67,34 +67,34 @@ python3 -m venv .venv
 ## Usage
 
 ```text
-ttdl [URLS ...] [options]
+ttigdl [URLS ...] [options]
 ```
 
 ### Examples
 
 ```bash
 # Single TikTok video
-ttdl https://www.tiktok.com/@user/video/1234567890
+ttigdl https://www.tiktok.com/@user/video/1234567890
 
 # Instagram post or reel (add --h264 for QuickTime-friendly playback)
-ttdl https://www.instagram.com/p/SHORTCODE/ --h264
-ttdl https://www.instagram.com/reel/SHORTCODE/ --h264
+ttigdl https://www.instagram.com/p/SHORTCODE/ --h264
+ttigdl https://www.instagram.com/reel/SHORTCODE/ --h264
 
 # Several at once, into a folder, 4 at a time
-ttdl url1 url2 url3 -o ~/Videos -j 4
+ttigdl url1 url2 url3 -o ~/Videos -j 4
 
 # Batch from a file (one URL per line, # comments allowed)
-ttdl -f urls.txt --archive --metadata
+ttigdl -f urls.txt --archive --metadata
 
 # A whole profile (downloads all of a user's videos)
-ttdl https://www.tiktok.com/@someuser
-ttdl https://www.instagram.com/someuser
+ttigdl https://www.tiktok.com/@someuser
+ttigdl https://www.instagram.com/someuser
 
 # Extract audio as MP3 instead of video
-ttdl https://www.tiktok.com/@user/video/123 --audio
+ttigdl https://www.tiktok.com/@user/video/123 --audio
 
 # Region-locked / private? Borrow cookies from your browser
-ttdl <url> --cookies-from-browser chrome
+ttigdl <url> --cookies-from-browser chrome
 ```
 
 ### Options
@@ -107,7 +107,7 @@ ttdl <url> --cookies-from-browser chrome
 | `-j, --jobs N` | Concurrent downloads (default: `1` = live progress) |
 | `-a, --audio` | Extract audio as MP3 instead of video |
 | `--h264` | Prefer QuickTime/Apple-compatible H.264 video + AAC audio |
-| `--archive [FILE]` | Record downloaded IDs and skip them next run (default `ttdl-archive.txt`) |
+| `--archive [FILE]` | Record downloaded IDs and skip them next run (default `ttigdl-archive.txt`) |
 | `--metadata` | Also write a `.info.json` sidecar per video |
 | `--thumbnail` | Also download the cover thumbnail |
 | `--force` | Re-download even if the file already exists |
