@@ -164,14 +164,18 @@ class Result:
 
 def run_streaming(base_cmd: list[str], url: str) -> Result:
     """Run one yt-dlp process, inheriting stdio so progress shows live."""
-    proc = subprocess.run(base_cmd + [url])
+    # "--" marks the end of options so a URL beginning with "-" can never be
+    # parsed by yt-dlp as an option (e.g. --exec=..., which would run a shell).
+    proc = subprocess.run(base_cmd + ["--", url])
     return Result(url, proc.returncode == 0,
                   "" if proc.returncode == 0 else f"exit code {proc.returncode}")
 
 
 def run_captured(base_cmd: list[str], url: str) -> Result:
     """Run one yt-dlp process quietly, capturing output for a one-line status."""
-    proc = subprocess.run(base_cmd + [url], capture_output=True, text=True)
+    # "--" marks the end of options (see run_streaming) to prevent a URL that
+    # starts with "-" from being interpreted as a yt-dlp option flag.
+    proc = subprocess.run(base_cmd + ["--", url], capture_output=True, text=True)
     if proc.returncode == 0:
         return Result(url, True)
     # Surface the last meaningful error line from yt-dlp.
