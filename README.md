@@ -97,6 +97,8 @@ ttigdl https://www.tiktok.com/@user/video/123 --audio
 ttigdl <url> --cookies-from-browser chrome
 ```
 
+> ⚠️ **Cookies contain live credentials.** An exported `cookies.txt` holds your real session tokens — it is gitignored (along with `*cookies*.txt`) so never commit it or share it.
+
 ### Options
 
 | Flag | Description |

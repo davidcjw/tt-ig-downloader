@@ -10,3 +10,8 @@ dist/
 # Default download + archive outputs
 downloads/
 ttigdl-archive.txt
+*-archive.txt
+
+# Live yt-dlp session cookies — NEVER commit (real credentials)
+cookies.txt
+*cookies*.txt
